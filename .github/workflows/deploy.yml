@@ -2,7 +2,7 @@ name: Build and Deploy
 
 on:
   push:
-    branches: [main]
+    branches: [master]
 
 env:
   PROJECT_ID: project-63a74e6c-25e7-48cd-a51
@@ -21,7 +21,8 @@ jobs:
     - name: Authenticate to GCP
       uses: google-github-actions/auth@v2
       with:
-        credentials_json: ${{ secrets.GCP_SA_KEY }}
+        workload_identity_provider: projects/47481804387/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+        service_account: github-actions@project-63a74e6c-25e7-48cd-a51.iam.gserviceaccount.com
 
     - name: Set up gcloud
       uses: google-github-actions/setup-gcloud@v2
