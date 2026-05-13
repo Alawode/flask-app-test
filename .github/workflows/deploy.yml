@@ -1,0 +1,46 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+
+env:
+  PROJECT_ID: project-63a74e6c-25e7-48cd-a51
+  REGION: us-central1
+  CLUSTER_NAME: flask-cluster
+  IMAGE: us-central1-docker.pkg.dev/project-63a74e6c-25e7-48cd-a51/flask-repo/flask-app
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Authenticate to GCP
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Set up gcloud
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Configure Docker for Artifact Registry
+      run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
+    - name: Build and push image
+      run: |
+        docker build -t ${{ env.IMAGE }}:${{ github.sha }} .
+        docker push ${{ env.IMAGE }}:${{ github.sha }}
+
+    - name: Get GKE credentials
+      uses: google-github-actions/get-gke-credentials@v2
+      with:
+        cluster_name: ${{ env.CLUSTER_NAME }}
+        location: ${{ env.REGION }}
+
+    - name: Deploy to GKE
+      run: |
+        kubectl set image deployment/flask-app flask-app=${{ env.IMAGE }}:${{ github.sha }}
+        kubectl rollout status deployment/flask-app
