@@ -10,6 +10,10 @@ env:
   CLUSTER_NAME: flask-cluster
   IMAGE: us-central1-docker.pkg.dev/project-63a74e6c-25e7-48cd-a51/flask-repo/flask-app
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
